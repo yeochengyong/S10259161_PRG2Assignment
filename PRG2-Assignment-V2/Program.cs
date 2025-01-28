@@ -50,27 +50,30 @@ Console.WriteLine($"{boardingGates.Count} Boarding Gates Loaded!");
 
 // loading flights
 Console.WriteLine("Loading flights...");
-try
+using (var reader = new StreamReader("flights.csv"))
 {
-    using (var reader = new StreamReader("flights.csv"))
-    {
-        string headerLine = reader.ReadLine();
-        string line;
-        while ((line = reader.ReadLine()) != null)
-        {
-            var parts = line.Split(',');
+    string headerLine = reader.ReadLine(); // Skip header
+    string line;
 
-            if (parts.Length >= 4)
+    while ((line = reader.ReadLine()) != null)
+    {
+        var parts = line.Split(',');
+
+        // Ensure the line has at least 4 fields (Flight Number, Origin, Destination, Expected Departure/Arrival)
+        if (parts.Length >= 4)
+        {
+            string flightNumber = parts[0].Trim();
+            string origin = parts[1].Trim();
+            string destination = parts[2].Trim();
+            DateTime expectedTime;
+
+            // Validate and parse the Expected Departure/Arrival field
+            if (DateTime.TryParse(parts[3].Trim(), out expectedTime))
             {
-                string flightNumber = parts[0].Trim();
-                string origin = parts[1].Trim();
-                string destination = parts[2].Trim();
-                DateTime expectedTime = DateTime.Parse(parts[3].Trim());
                 string specialRequestCode = parts.Length > 4 ? parts[4].Trim().ToUpper() : null;
 
+                // Determine the flight type based on the special request code
                 Flight flight;
-
-                // determine flight type based off special req code
                 switch (specialRequestCode)
                 {
                     case "CFFT":
@@ -87,26 +90,41 @@ try
                         break;
                 }
 
-                // add to flight to dict
-                if (!flights.ContainsKey(flightNumber))
+                // Add the flight to the dictionary
+                if (!terminal.Flights.ContainsKey(flightNumber))
                 {
-                    flights[flightNumber] = flight;
+                    terminal.Flights[flightNumber] = flight;
                 }
-                else
-                {
-                    Console.WriteLine($"Duplicate flight number {flightNumber} detected. Skipping.");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"Invalid line format: {line}");
             }
         }
-
-        Console.WriteLine($"{flights.Count} Flights Loaded!");
     }
 }
-catch (Exception ex)
+
+while (true)
 {
-    Console.WriteLine($"Error loading flights: {ex.Message}");
+    Console.Clear();
+    Console.WriteLine("=============================================");
+    Console.WriteLine($"Welcome to {terminal.TerminalName}");
+    Console.WriteLine("=============================================");
+    Console.WriteLine("1. List All Flights");
+    Console.WriteLine("0. Exit");
+    Console.WriteLine("=============================================");
+    Console.Write("Please select your option: ");
+    string option = Console.ReadLine();
+
+    switch (option)
+    {
+        case "1":
+            terminal.ListAllFlights();
+            break;
+        case "0":
+            Console.WriteLine("Thank you for using the system. Goodbye!");
+            return;
+        default:
+            Console.WriteLine("Invalid option. Please try again.");
+            break;
+    }
+
+    Console.WriteLine("\nPress Enter to return to the menu...");
+    Console.ReadLine();
 }
