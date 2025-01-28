@@ -2,6 +2,10 @@
 
 var airlines = new Dictionary<string, Airline>();
 var boardingGates = new Dictionary<string, BoardingGate>();
+var flights = new Dictionary<string, Flight>();
+
+// new terminal
+Terminal terminal = new Terminal("Changi Airport Terminal 5");
 
 // loading airlines
 Console.WriteLine("Loading Airlines...");
@@ -44,22 +48,18 @@ using (var lines = new StreamReader("boardinggates.csv"))
 
 Console.WriteLine($"{boardingGates.Count} Boarding Gates Loaded!");
 
-var flights = new Dictionary<string, Flight>(); // Replace `object` with your Flight base class.
-
+// loading flights
+Console.WriteLine("Loading flights...");
 try
 {
     using (var reader = new StreamReader("flights.csv"))
     {
-        // Skip the header line
         string headerLine = reader.ReadLine();
-
-        // Read and process each line
         string line;
         while ((line = reader.ReadLine()) != null)
         {
             var parts = line.Split(',');
 
-            // Ensure the line has at least 4 fields (Flight Number, Origin, Destination, Expected Departure/Arrival)
             if (parts.Length >= 4)
             {
                 string flightNumber = parts[0].Trim();
@@ -70,7 +70,7 @@ try
 
                 Flight flight;
 
-                // Determine the flight type based on the Special Request Code
+                // determine flight type based off special req code
                 switch (specialRequestCode)
                 {
                     case "CFFT":
@@ -87,7 +87,7 @@ try
                         break;
                 }
 
-                // Add the flight to the dictionary if it doesn't already exist
+                // add to flight to dict
                 if (!flights.ContainsKey(flightNumber))
                 {
                     flights[flightNumber] = flight;
@@ -110,4 +110,3 @@ catch (Exception ex)
 {
     Console.WriteLine($"Error loading flights: {ex.Message}");
 }
-

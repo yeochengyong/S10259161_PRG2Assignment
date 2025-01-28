@@ -14,15 +14,14 @@ namespace PRG2_Assignment_V2
 {
     public class LWTTFlight : Flight
     {
-        public double RequestFee { get; private set; }
-        public LWTTFlight(string flightNumber, string origin, string destination, DateTime expectedTime, string status = "Scheduled", double requestFee = 500)
-            : base(flightNumber, origin, destination, expectedTime, status)
-        {
-            RequestFee = requestFee;
-        }
+        public static readonly double RequestFee = 500; // LWTT Code Request Fee
+
+        public LWTTFlight(string flightNumber, string origin, string destination, DateTime expectedTime, string status = "Scheduled")
+            : base(flightNumber, origin, destination, expectedTime, status) { }
+
         public override double CalculateFees()
         {
-            return 500 + RequestFee;
+            return 500 + RequestFee; // Base + LWTT
         }
     }
 }

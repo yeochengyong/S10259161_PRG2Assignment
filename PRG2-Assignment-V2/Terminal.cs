@@ -25,7 +25,15 @@ namespace PRG2_Assignment_V2
             Airlines = new Dictionary<string, Airline>();
             Flights = new Dictionary<string, Flight>();
             BoardingGates = new Dictionary<string, BoardingGate>();
-            GateFees = new Dictionary<string, double>();
+            GateFees = new Dictionary<string, double>
+            {
+                { "ArrivingFlight", 500 },
+                { "DepartingFlight", 800 },
+                { "BoardingGateBaseFee", 300 },
+                { "DDJBCodeRequestFee", 300 },
+                { "CFFTCodeRequestFee", 150 },
+                { "LWTTCodeRequestFee", 500 }
+            };
         }
 
         public bool AddAirline(Airline airline)

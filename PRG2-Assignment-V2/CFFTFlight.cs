@@ -14,15 +14,14 @@ namespace PRG2_Assignment_V2
 {
     public class CFFTFlight : Flight
     {
-        public double RequestFee { get; private set; }
-        public CFFTFlight(string flightNumber, string origin, string destination, DateTime expectedTime, string status = "Scheduled", double requestFee = 150)
-            : base(flightNumber, origin, destination, expectedTime, status)
-        {
-            RequestFee = requestFee;
-        }
+        public static readonly double RequestFee = 150; // CFFT Code Request Fee
+
+        public CFFTFlight(string flightNumber, string origin, string destination, DateTime expectedTime, string status = "Scheduled")
+            : base(flightNumber, origin, destination, expectedTime, status) { }
+
         public override double CalculateFees()
         {
-            return 500 + RequestFee;
+            return 500 + RequestFee; // Base + CFFT
         }
     }
 }
