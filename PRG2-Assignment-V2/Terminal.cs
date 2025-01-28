@@ -149,7 +149,7 @@ namespace PRG2_Assignment_V2
 
             Flight selectedFlight = null;
 
-            // Step 1: Prompt the user for the Flight Number
+            // Prompt the user for the Flight Number
             while (selectedFlight == null)
             {
                 Console.WriteLine("\nEnter Flight Number: ");
@@ -165,7 +165,7 @@ namespace PRG2_Assignment_V2
                 }
             }
 
-            // Step 2: Prompt for a Boarding Gate
+            // Prompt for a Boarding Gate
             BoardingGate selectedGate = null;
             while (selectedGate == null)
             {
@@ -192,7 +192,7 @@ namespace PRG2_Assignment_V2
                 }
             }
 
-            // Step 3: Display Flight and Boarding Gate Information in the Correct Format
+            // Display Flight and Boarding Gate Information in the Correct Format
             Console.WriteLine("\nFlight Number: " + selectedFlight.FlightNumber);
             Console.WriteLine("Origin: " + selectedFlight.Origin);
             Console.WriteLine("Destination: " + selectedFlight.Destination);
@@ -204,7 +204,7 @@ namespace PRG2_Assignment_V2
             Console.WriteLine("Supports CFFT: " + (selectedGate.SupportsCFFT ? "True" : "False"));
             Console.WriteLine("Supports LWTT: " + (selectedGate.SupportsLWTT ? "True" : "False"));
 
-            // Step 4: Prompt user to update Flight Status
+            // Prompt user to update Flight Status
             Console.WriteLine("\nWould you like to update the status of the flight? (Y/N): ");
             string updateStatus = Console.ReadLine().Trim().ToUpper();
 
@@ -229,10 +229,178 @@ namespace PRG2_Assignment_V2
                 selectedFlight.Status = "On Time"; // Default status
             }
 
-            // Step 5: Assign the Flight to the Boarding Gate
+            // Assign the Flight to the Boarding Gate
             selectedGate.AssignedFlight = selectedFlight;
             Console.WriteLine($"\nBoarding Gate {selectedGate.GateName} successfully assigned to Flight {selectedFlight.FlightNumber}.");
         }
+        public void CreateFlight()
+        {
+            bool addMoreFlights = true;
+
+            while (addMoreFlights)
+            {
+                string flightNumber = "";
+                while (true)
+                {
+                    Console.Write("\nEnter Flight Number: ");
+                    flightNumber = Console.ReadLine().Trim().ToUpper();
+
+                    if (string.IsNullOrEmpty(flightNumber))
+                    {
+                        Console.WriteLine("Error: Flight Number cannot be empty. Please try again.");
+                        continue;
+                    }
+
+                    if (Flights.ContainsKey(flightNumber))
+                    {
+                        Console.WriteLine("Error: Flight Number already exists! Please enter a unique Flight Number.");
+                        continue;
+                    }
+
+                    break;
+                }
+                string airlineName = GetAirlineNameFromFlight(flightNumber);
+
+                string origin = "";
+                while (true)
+                {
+                    Console.Write("\nEnter Origin: ");
+                    origin = Console.ReadLine().Trim();
+                    origin = FormatLocation(origin);
+
+                    if (string.IsNullOrEmpty(origin))
+                    {
+                        Console.WriteLine("Error: Origin cannot be empty. Please try again.");
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                string destination = "";
+                while (true)
+                {
+                    Console.Write("\nEnter Destination: ");
+                    destination = Console.ReadLine().Trim();
+                    destination = FormatLocation(destination);
+
+                    if (string.IsNullOrEmpty(destination))
+                    {
+                        Console.WriteLine("Error: Destination cannot be empty. Please try again.");
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                DateTime expectedTime;
+                while (true)
+                {
+                    Console.Write("\nEnter Expected Departure/Arrival Time (dd/mm/yyyy hh:mm): ");
+                    string timeInput = Console.ReadLine().Trim();
+
+                    if (string.IsNullOrEmpty(timeInput) || !DateTime.TryParseExact(timeInput, "d/M/yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out expectedTime))
+                    {
+                        Console.WriteLine("Error: Invalid format! Please enter the date in dd/mm/yyyy hh:mm format.");
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Prompt for Special Request Code
+                string specialRequestCode = "";
+                while (true)
+                {
+                    Console.Write("\nEnter Special Request Code (CFFT/DDJB/LWTT/None): ");
+                    specialRequestCode = Console.ReadLine().Trim().ToUpper();
+
+                    if (specialRequestCode == "CFFT" || specialRequestCode == "DDJB" || specialRequestCode == "LWTT" || specialRequestCode == "NONE")
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: Invalid input! Please enter CFFT, DDJB, LWTT, or None.");
+                    }
+                }
+
+                // Create appropriate Flight object
+                Flight newFlight = specialRequestCode switch
+                {
+                    "CFFT" => new CFFTFlight(flightNumber, origin, destination, expectedTime, "Scheduled"),
+                    "DDJB" => new DDJBFlight(flightNumber, origin, destination, expectedTime, "Scheduled"),
+                    "LWTT" => new LWTTFlight(flightNumber, origin, destination, expectedTime, "Scheduled"),
+                    _ => new NORMFlight(flightNumber, origin, destination, expectedTime, "Scheduled")
+                };
+
+                // Add the flight to the dictionary
+                Flights[flightNumber] = newFlight;
+
+                // Append the new Flight information to flights.csv 
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter("flights.csv", true))
+                    {
+                        writer.WriteLine($"{flightNumber},{origin},{destination},{expectedTime:dd/MM/yyyy HH:mm},{(specialRequestCode == "NONE" ? "" : specialRequestCode)}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: Could not write to flights.csv. Details: {ex.Message}");
+                }
+
+                // Display confirmation message
+                Console.WriteLine($"\nFlight {flightNumber} has been added!");
+
+                // Ask if the user wants to add another flight
+                while (true)
+                {
+                    Console.Write("\nWould you like to add another flight? (Y/N): ");
+                    string addAnother = Console.ReadLine().Trim().ToUpper();
+
+                    if (addAnother == "Y")
+                    {
+                        addMoreFlights = true;
+                        break;
+                    }
+                    else if (addAnother == "N")
+                    {
+                        addMoreFlights = false;
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: Invalid input! Please enter Y or N.");
+                    }
+                }
+            }
+        }
+
+        // Capitalizes the firts letter of origin and destination
+        private string FormatLocation(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return input;
+
+            // Find the opening bracket (if any)
+            int bracketIndex = input.IndexOf("(");
+
+            // If there's no bracket, just capitalize the first letter of the whole input
+            if (bracketIndex == -1)
+                return char.ToUpper(input[0]) + input.Substring(1).ToLower();
+
+            // Separate the location name and the airport code
+            string location = input.Substring(0, bracketIndex).Trim(); // City name
+            string airportCode = input.Substring(bracketIndex).ToUpper().Trim(); // Keep (SIN) uppercase
+
+            // Capitalize the first letter of the city and return the formatted result
+            return char.ToUpper(location[0]) + location.Substring(1).ToLower() + " " + airportCode;
+        }
+
         public override string ToString()
         {
             return $"Terminal: {TerminalName}, Airlines: {Airlines.Count}, " +

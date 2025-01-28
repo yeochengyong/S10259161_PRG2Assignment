@@ -129,6 +129,9 @@ while (true)
         case "3":
             terminal.AssignBoardingGateToFlight();
             break;
+        case "4":
+            terminal.CreateFlight(); 
+            break;
         case "0":
             Console.WriteLine("Thank you for using the system. Goodbye!");
             return;
