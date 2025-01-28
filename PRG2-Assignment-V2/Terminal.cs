@@ -141,7 +141,98 @@ namespace PRG2_Assignment_V2
                                   gate.SupportsLWTT ? "True" : "False");
             }
         }
+        public void AssignBoardingGateToFlight()
+        {
+            Console.WriteLine("=============================================");
+            Console.WriteLine("Assign a Boarding Gate to a Flight");
+            Console.WriteLine("=============================================");
 
+            Flight selectedFlight = null;
+
+            // Step 1: Prompt the user for the Flight Number
+            while (selectedFlight == null)
+            {
+                Console.WriteLine("\nEnter Flight Number: ");
+                string flightNumber = Console.ReadLine().Trim();
+
+                if (Flights.ContainsKey(flightNumber))
+                {
+                    selectedFlight = Flights[flightNumber];
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Flight Number. Please try again.");
+                }
+            }
+
+            // Step 2: Prompt for a Boarding Gate
+            BoardingGate selectedGate = null;
+            while (selectedGate == null)
+            {
+                Console.WriteLine("\nEnter Boarding Gate Name: ");
+                string gateName = Console.ReadLine().Trim();
+
+                if (BoardingGates.ContainsKey(gateName))
+                {
+                    BoardingGate gate = BoardingGates[gateName];
+
+                    // Check if the gate is already assigned
+                    if (gate.AssignedFlight == null)
+                    {
+                        selectedGate = gate;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Boarding Gate {gateName} is already assigned to Flight {gate.AssignedFlight.FlightNumber}. Please choose another gate.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Boarding Gate. Please try again.");
+                }
+            }
+
+            // Step 3: Display Flight and Boarding Gate Information in the Correct Format
+            Console.WriteLine("\nFlight Number: " + selectedFlight.FlightNumber);
+            Console.WriteLine("Origin: " + selectedFlight.Origin);
+            Console.WriteLine("Destination: " + selectedFlight.Destination);
+            Console.WriteLine("Expected Time: " + selectedFlight.ExpectedTime.ToString("d/M/yyyy hh:mm:ss tt"));
+            Console.WriteLine("Special Request Code: " + (selectedFlight is NORMFlight ? "None" : selectedFlight.GetType().Name.Replace("Flight", "")));
+
+            Console.WriteLine("\nBoarding Gate Name: " + selectedGate.GateName);
+            Console.WriteLine("Supports DDJB: " + (selectedGate.SupportsDDJB ? "True" : "False"));
+            Console.WriteLine("Supports CFFT: " + (selectedGate.SupportsCFFT ? "True" : "False"));
+            Console.WriteLine("Supports LWTT: " + (selectedGate.SupportsLWTT ? "True" : "False"));
+
+            // Step 4: Prompt user to update Flight Status
+            Console.WriteLine("\nWould you like to update the status of the flight? (Y/N): ");
+            string updateStatus = Console.ReadLine().Trim().ToUpper();
+
+            if (updateStatus == "Y")
+            {
+                Console.WriteLine("\n1. Delayed");
+                Console.WriteLine("2. Boarding");
+                Console.WriteLine("3. On Time");
+                Console.WriteLine("\nPlease select the new status of the flight: ");
+
+                int statusChoice;
+                while (!int.TryParse(Console.ReadLine().Trim(), out statusChoice) || statusChoice < 1 || statusChoice > 3)
+                {
+                    Console.WriteLine("Invalid selection. Please select 1, 2, or 3: ");
+                }
+
+                string[] statusOptions = { "Delayed", "Boarding", "On Time" };
+                selectedFlight.Status = statusOptions[statusChoice - 1]; // Assigns the correct status
+            }
+            else
+            {
+                selectedFlight.Status = "On Time"; // Default status
+            }
+
+            // Step 5: Assign the Flight to the Boarding Gate
+            selectedGate.AssignedFlight = selectedFlight;
+            Console.WriteLine($"\nBoarding Gate {selectedGate.GateName} successfully assigned to Flight {selectedFlight.FlightNumber}.");
+        }
         public override string ToString()
         {
             return $"Terminal: {TerminalName}, Airlines: {Airlines.Count}, " +
