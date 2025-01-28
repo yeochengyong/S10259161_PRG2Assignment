@@ -89,29 +89,24 @@ namespace PRG2_Assignment_V2
         }
         public string GetAirlineNameFromFlight(string flightNumber)
         {
-            // Extract the airline code from the flight number (e.g., "SQ" from "SQ 115")
+            // extract airline code from flight num
             string[] parts = flightNumber.Split(' ');
             if (parts.Length > 0)
             {
-                string airlineCode = parts[0].Trim(); // Extract the code (e.g., "SQ")
+                string airlineCode = parts[0].Trim();
 
-                // Check if the airline code exists in the mapping
+                // check if airline exist in map
                 if (AirlineCodeMapping.TryGetValue(airlineCode, out string airlineName))
                 {
-                    return airlineName; // Return the airline name if found
+                    return airlineName; // return name
                 }
             }
 
-            return "Unknown Airline"; // Default if airline code is not found
+            return "Unknown Airline"; // default
         }
 
         public void ListAllFlights()
         {
-            if (Flights.Count == 0) // Check if no flights exist
-            {
-                Console.WriteLine("No flights available to display.");
-                return;
-            }
             Console.WriteLine("=============================================");
             Console.WriteLine($"List of Flights for {TerminalName}");
             Console.WriteLine("=============================================");
@@ -126,6 +121,24 @@ namespace PRG2_Assignment_V2
                 // Display flight details
                 Console.WriteLine("{0,-15} {1,-25} {2,-20} {3,-20} {4,-20}",
                                   flight.FlightNumber, airlineName, flight.Origin, flight.Destination, flight.ExpectedTime.ToString("hh:mm tt"));
+            }
+        }
+        public void ListAllBoardingGates()
+        {
+            Console.WriteLine("=========================================================");
+            Console.WriteLine($"List of Boarding Gates for {TerminalName}");
+            Console.WriteLine("=========================================================");
+            Console.WriteLine("{0,-10} {1,-10} {2,-10} {3,-10}",
+                              "Gate Name", "DDJB", "CFFT", "LWTT");
+
+            foreach (var gate in BoardingGates.Values)
+            {
+                // display gate details
+                Console.WriteLine("{0,-10} {1,-10} {2,-10} {3,-10}",
+                                  gate.GateName,
+                                  gate.SupportsDDJB ? "True" : "False",
+                                  gate.SupportsCFFT ? "True" : "False",
+                                  gate.SupportsLWTT ? "True" : "False");
             }
         }
 
