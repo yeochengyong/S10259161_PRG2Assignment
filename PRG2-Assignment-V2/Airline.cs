@@ -17,10 +17,10 @@ namespace PRG2_Assignment_V2
         public string Name { get; set; }
         public string Code { get; set; }
         public Dictionary<string, Flight> Flights { get; set; }
-        public Airline(string code, string name)
+        public Airline(string name, string code)
         {
-            Code = code;
             Name = name;
+            Code = code;
             Flights = new Dictionary<string, Flight>();
         }
         public bool AddFlight(Flight flight)
@@ -47,7 +47,7 @@ namespace PRG2_Assignment_V2
         }
         public override string ToString()
         {
-            return $"{Code} - {Name} (Flights: {Flights.Count})";
+            return $"{Name} - {Code} (Flights: {Flights.Count})";
         }
     }
 }

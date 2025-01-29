@@ -14,9 +14,9 @@ using (var lines = new StreamReader("airlines.csv"))
         var parts = line.Split(',');
         if (parts.Length >= 2)
         {
-            string code = parts[0].Trim();
-            string name = parts[1].Trim();
-            Airline airline = new Airline(code, name);
+            string name = parts[0].Trim();
+            string code = parts[1].Trim();
+            Airline airline = new Airline(name, code);
             terminal.Airlines[code] = airline;
         }
     }
@@ -90,15 +90,17 @@ using (var reader = new StreamReader("flights.csv"))
                 }
 
                 // add flight to dictionary
-                if (!terminal.Flights.ContainsKey(flightNumber))
+                string airlineCode = flightNumber.Split(' ')[0]; // Extract airline code
+                if (terminal.Airlines.ContainsKey(airlineCode))
                 {
-                    terminal.Flights[flightNumber] = flight;
+                    terminal.Airlines[airlineCode].AddFlight(flight); // Assign flight to airline
                 }
             }
         }
     }
 }
-Console.WriteLine($"{terminal.Flights.Count} Flights Loaded!");
+int totalFlights = terminal.Airlines.Values.Sum(airline => airline.Flights.Count);
+Console.WriteLine($"{totalFlights} Flights Loaded!");
 
 while (true)
 {
@@ -131,6 +133,12 @@ while (true)
             break;
         case "4":
             terminal.CreateFlight(); 
+            break;
+        case "5":
+            terminal.DisplayFullFlightDetails();
+            break;
+        case "6":
+            terminal.ModifyFlightDetails();
             break;
         case "0":
             Console.WriteLine("Thank you for using the system. Goodbye!");
