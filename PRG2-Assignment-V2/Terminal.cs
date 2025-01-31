@@ -670,6 +670,56 @@ namespace PRG2_Assignment_V2
                 Console.WriteLine("\nDeletion cancelled.");
             }
         }
+        public void DisplayScheduledFlights()
+        {
+            Console.WriteLine("\n======================================================================================================================");
+            Console.WriteLine($"Flight Schedule for {TerminalName}");
+            Console.WriteLine("======================================================================================================================");
+
+            // Collect all flights from all airlines
+            List<Flight> allFlights = new List<Flight>();
+            foreach (var airline in Airlines.Values)
+            {
+                allFlights.AddRange(airline.Flights.Values);
+            }
+
+            // Sort flights in chronological order
+            allFlights.Sort();
+
+            // Display table header (Fixed alignment)
+            Console.WriteLine("{0,-12} {1,-22} {2,-25} {3,-25} {4,-30} {5,-12} {6,-15}",
+                              "Flight No.", "Airline Name", "Origin", "Destination", "Expected Departure/Arrival", "Status", "Boarding Gate");
+            Console.WriteLine("======================================================================================================================");
+
+            // Display flight details
+            foreach (var flight in allFlights)
+            {
+                // Get the airline name
+                string airlineCode = flight.FlightNumber.Split(' ')[0];
+                string airlineName = Airlines.ContainsKey(airlineCode) ? Airlines[airlineCode].Name : "Unknown Airline";
+
+                // Get the assigned boarding gate (if any)
+                string boardingGateName = "Unassigned";
+                foreach (var gate in BoardingGates.Values)
+                {
+                    if (gate.AssignedFlight == flight)
+                    {
+                        boardingGateName = gate.GateName;
+                        break;
+                    }
+                }
+
+                // Apply manual spacing to fix misalignment without changing class
+                string formattedOrigin = flight.Origin.Length < 23 ? flight.Origin.PadRight(23) : flight.Origin;
+                string formattedDestination = flight.Destination.Length < 23 ? flight.Destination.PadRight(23) : flight.Destination;
+
+                // Format and display flight details (Fixed spacing)
+                Console.WriteLine("{0,-12} {1,-22} {2,-25} {3,-25} {4,-30} {5,-12} {6,-15}",
+                                  flight.FlightNumber, airlineName, formattedOrigin, formattedDestination,
+                                  flight.ExpectedTime.ToString("d/M/yyyy hh:mm:ss tt"), flight.Status, boardingGateName);
+            }
+        }
+
 
         public override string ToString()
         {

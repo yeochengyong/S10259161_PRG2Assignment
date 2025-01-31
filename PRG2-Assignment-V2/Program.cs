@@ -140,6 +140,9 @@ while (true)
         case "6":
             terminal.ModifyFlightDetails();
             break;
+        case "7":
+            terminal.DisplayScheduledFlights();
+            break;
         case "0":
             Console.WriteLine("Thank you for using the system. Goodbye!");
             return;

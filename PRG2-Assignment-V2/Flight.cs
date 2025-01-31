@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace PRG2_Assignment_V2
 {
-    public abstract class Flight
+    public abstract class Flight : IComparable<Flight>
     {
         public string FlightNumber { get; set; }
         public string Origin { get; set; }
@@ -28,6 +28,13 @@ namespace PRG2_Assignment_V2
             Destination = destination;
             ExpectedTime = expectedTime;
             Status = status;
+        }
+        public int CompareTo(Flight other)
+        {
+            if (other == null)
+                return 1; // Current flight comes first if other is null
+
+            return this.ExpectedTime.CompareTo(other.ExpectedTime); // Sort flights in ascending order by time
         }
 
         public abstract double CalculateFees();
