@@ -215,7 +215,7 @@ namespace PRG2_Assignment_V2
             while (addMoreFlights)
             {
                 string flightNumber = "";
-                string airlineCode = ""; // ✅ Declare airlineCode once at the top
+                string airlineCode = ""; // Declare airlineCode once at the top
 
                 while (true)
                 {
@@ -229,7 +229,7 @@ namespace PRG2_Assignment_V2
                     }
 
                     // Extract airline code from flight number
-                    airlineCode = flightNumber.Split(' ')[0]; // ✅ No redeclaration
+                    airlineCode = flightNumber.Split(' ')[0]; // No redeclaration
 
                     // Ensure the airline exists
                     if (!Airlines.ContainsKey(airlineCode))
@@ -325,7 +325,7 @@ namespace PRG2_Assignment_V2
                 };
 
                 // Store the new flight inside the airline
-                Airlines[airlineCode].Flights[flightNumber] = newFlight; // ✅ FIXED: Store in the correct airline
+                Flights[flightNumber] = newFlight;
 
                 // Append the new Flight information to flights.csv 
                 try
@@ -719,6 +719,91 @@ namespace PRG2_Assignment_V2
                                   flight.ExpectedTime.ToString("d/M/yyyy hh:mm:ss tt"), flight.Status, boardingGateName);
             }
         }
+
+        // advanced feature (a)
+        public void ProcessUnassignedFlights()
+        {
+            Console.WriteLine();
+            Console.WriteLine("===============================================");
+            Console.WriteLine("Processing Unassigned Flights to Boarding Gates");
+            Console.WriteLine("===============================================");
+
+            // Queue to store unassigned flights
+            Queue<Flight> unassignedFlights = new Queue<Flight>();
+
+            // Identify unassigned flights
+            List<Flight> allFlights = Airlines.Values.SelectMany(a => a.Flights.Values).ToList();
+            foreach (var flight in allFlights)
+            {
+                bool isAssigned = BoardingGates.Values.Any(g => g.AssignedFlight == flight);
+
+                if (!isAssigned)
+                {
+                    unassignedFlights.Enqueue(flight);
+                }
+            }
+
+            // Identify unassigned boarding gates
+            List<BoardingGate> availableGates = BoardingGates.Values
+                .Where(g => g.AssignedFlight == null)
+                .ToList();
+
+            Console.WriteLine($"\nTotal Unassigned Flights: {unassignedFlights.Count}");
+            Console.WriteLine($"Total Unassigned Boarding Gates: {availableGates.Count}");
+            Console.WriteLine();
+
+            // Variables to track processing
+            int flightsAssigned = 0;
+            int gatesProcessed = 0;
+
+            // Process flight assignments
+            Console.WriteLine("{0,-15} {1,-25} {2,-20} {3,-20} {4,-20} {5,-15}{6,-15}",
+                                      "Flight Number", "Airline Name", "Origin", "Destination", "Expected Time", "Status", "Boarding Gate");
+            Console.WriteLine();
+
+            while (unassignedFlights.Count > 0 && availableGates.Count > 0)
+            {
+                Flight flight = unassignedFlights.Dequeue();
+                BoardingGate assignedGate = null;
+
+                // Check for a gate that matches the special request code
+                if (flight is CFFTFlight)
+                    assignedGate = availableGates.FirstOrDefault(g => g.SupportsCFFT);
+                else if (flight is DDJBFlight)
+                    assignedGate = availableGates.FirstOrDefault(g => g.SupportsDDJB);
+                else if (flight is LWTTFlight)
+                    assignedGate = availableGates.FirstOrDefault(g => g.SupportsLWTT);
+                else
+                    assignedGate = availableGates.FirstOrDefault(g => !g.SupportsCFFT && !g.SupportsDDJB && !g.SupportsLWTT);
+
+
+                if (assignedGate != null)
+                {
+                    assignedGate.AssignedFlight = flight;
+                    flightsAssigned++;
+                    gatesProcessed++;
+
+                    // Remove assigned gate from available gates list
+                    availableGates.Remove(assignedGate);
+
+                    // Display the assigned flight details
+                    string airlineName = Airlines[flight.FlightNumber.Split(' ')[0]].Name;
+                    string boardingGateName = assignedGate.GateName;
+
+                    Console.WriteLine("{0,-15} {1,-25} {2,-20} {3,-20} {4,-20} {5,-15}{6,-15}\n",
+                                      flight.FlightNumber, airlineName, flight.Origin, flight.Destination,
+                                      flight.ExpectedTime.ToString("d/M/yyyy hh:mm tt"), flight.Status, boardingGateName);
+                }
+            }
+
+            // Summary of assignment process
+            Console.WriteLine($"Total Flights Processed: {flightsAssigned}");
+            Console.WriteLine($"Total Boarding Gates Processed: {gatesProcessed}");
+
+            double assignedPercentage = (flightsAssigned > 0) ? ((double)flightsAssigned / Flights.Count) * 100 : 0;
+            Console.WriteLine($"Flights Assigned Automatically: {flightsAssigned}");
+        }
+
 
 
         public override string ToString()
