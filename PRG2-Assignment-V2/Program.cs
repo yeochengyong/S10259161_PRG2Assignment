@@ -116,6 +116,7 @@ while (true)
     Console.WriteLine("6. Modify Flight Details");
     Console.WriteLine("7. Display Flight Schedule");
     Console.WriteLine("8. Automatically Process Unassigned Flights");
+    Console.WriteLine("9. Display Total Fee Per Airline");
     Console.WriteLine("0. Exit");
     Console.WriteLine("=============================================");
     Console.Write("Please select your option: ");
@@ -146,6 +147,9 @@ while (true)
             break;
         case "8":
             terminal.ProcessUnassignedFlights();
+            break;
+        case "9":
+            terminal.DisplayTotalFeePerAirline();
             break;
         case "0":
             Console.WriteLine("Thank you for using the system. Goodbye!");

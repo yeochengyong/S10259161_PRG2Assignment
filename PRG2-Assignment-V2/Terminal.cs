@@ -326,6 +326,7 @@ namespace PRG2_Assignment_V2
 
                 // Store the new flight inside the airline
                 Flights[flightNumber] = newFlight;
+                Airlines[airlineCode].Flights[flightNumber] = newFlight;
 
                 // Append the new Flight information to flights.csv 
                 try
@@ -672,9 +673,9 @@ namespace PRG2_Assignment_V2
         }
         public void DisplayScheduledFlights()
         {
-            Console.WriteLine("\n======================================================================================================================");
+            Console.WriteLine("\n====================================================================================================================================================");
             Console.WriteLine($"Flight Schedule for {TerminalName}");
-            Console.WriteLine("======================================================================================================================");
+            Console.WriteLine("====================================================================================================================================================");
 
             // Collect all flights from all airlines
             List<Flight> allFlights = new List<Flight>();
@@ -689,7 +690,7 @@ namespace PRG2_Assignment_V2
             // Display table header (Fixed alignment)
             Console.WriteLine("{0,-12} {1,-22} {2,-25} {3,-25} {4,-30} {5,-12} {6,-15}",
                               "Flight No.", "Airline Name", "Origin", "Destination", "Expected Departure/Arrival", "Status", "Boarding Gate");
-            Console.WriteLine("======================================================================================================================");
+            Console.WriteLine("====================================================================================================================================================");
 
             // Display flight details
             foreach (var flight in allFlights)
@@ -803,8 +804,107 @@ namespace PRG2_Assignment_V2
             double assignedPercentage = (flightsAssigned > 0) ? ((double)flightsAssigned / Flights.Count) * 100 : 0;
             Console.WriteLine($"Flights Assigned Automatically: {flightsAssigned}");
         }
+        public void DisplayTotalFeePerAirline()
+        {
+            Console.WriteLine("=============================================");
+            Console.WriteLine("Total Fees Per Airline for Terminal 5");
+            Console.WriteLine("=============================================");
 
+            // Check if all flights have boarding gates assigned
+            int unassignedFlights = Flights.Values.Count(f => !BoardingGates.Values.Any(g => g.AssignedFlight == f));
 
+            if (unassignedFlights > 0)
+            {
+                Console.WriteLine($"\nWarning: {unassignedFlights} flights do not have an assigned boarding gate.");
+                Console.WriteLine("Please ensure all flights are assigned a gate before running this feature.");
+                return;
+            }
+
+            double totalFees = 0;
+            double totalDiscounts = 0;
+
+            Console.WriteLine("\n{0,-20} {1,-15} {2,-15} {3,-15}", "Airline", "Subtotal", "Discounts", "Final Total");
+
+            foreach (var airline in Airlines.Values)
+            {
+                double airlineTotalFee = 0;
+                double airlineTotalDiscount = 0;
+                int flightCount = 0;
+                int flightsBefore11OrAfter9 = 0;
+                int flightsWithSpecificOrigins = 0;
+                int flightsWithNoSpecialRequest = 0;
+
+                foreach (var flight in airline.Flights.Values)
+                {
+                    double flightFee = 0;
+                    flightCount++;
+
+                    // Apply Base Fees: Arriving / Departing Flight Fees
+                    if (flight.Destination.Contains("Singapore (SIN)"))
+                    {
+                        flightFee += 500; // Arriving flight fee
+                    }
+                    if (flight.Origin.Contains("Singapore (SIN)"))
+                    {
+                        flightFee += 800; // Departing flight fee
+                    }
+
+                    // Apply Special Request Code Fees
+                    if (flight is DDJBFlight)
+                        flightFee += 300;
+                    else if (flight is CFFTFlight)
+                        flightFee += 150;
+                    else if (flight is LWTTFlight)
+                        flightFee += 500;
+
+                    // Apply Boarding Gate Base Fee
+                    flightFee += 300;
+
+                    // Apply Promotional Discounts
+                    if (flight.ExpectedTime.Hour < 11 || flight.ExpectedTime.Hour >= 21)
+                        flightsBefore11OrAfter9++;
+
+                    if (flight.Origin.Contains("Dubai (DXB)") || flight.Origin.Contains("Bangkok (BKK)") || flight.Origin.Contains("Tokyo (NRT)"))
+                        flightsWithSpecificOrigins++;
+
+                    if (flight is NORMFlight) // Flight with no special request
+                        flightsWithNoSpecialRequest++;
+
+                    airlineTotalFee += flightFee;
+                }
+
+                // Apply Stackable Promotions
+                airlineTotalDiscount += (flightCount / 3) * 350;  // Every 3 flights: $350 off
+                airlineTotalDiscount += flightsBefore11OrAfter9 * 110; // Flights before 11AM or after 9PM: $110 off
+                airlineTotalDiscount += flightsWithSpecificOrigins * 25; // Special origin discount: $25 off per flight
+                airlineTotalDiscount += flightsWithNoSpecialRequest * 50; // Flights without special requests: $50 off
+
+                // Additional 3% off for airlines with more than 5 flights
+                if (flightCount > 5)
+                    airlineTotalDiscount += airlineTotalFee * 0.03;
+
+                double airlineFinalFee = airlineTotalFee - airlineTotalDiscount;
+
+                // Print airline summary
+                Console.WriteLine("\n{0,-20} ${1,-15:0.00} ${2,-15:0.00} ${3,-15:0.00}", airline.Name, airlineTotalFee, airlineTotalDiscount, airlineFinalFee);
+
+                totalFees += airlineTotalFee;
+                totalDiscounts += airlineTotalDiscount;
+            }
+
+            double finalTotal = totalFees - totalDiscounts;
+            double discountPercentage = totalFees > 0 ? (totalDiscounts / totalFees) * 100 : 0;
+
+            // Print final summary
+            Console.WriteLine("\n=============================================");
+            Console.WriteLine("Terminal 5 Total Revenue Summary");
+            Console.WriteLine("=============================================");
+            Console.WriteLine("Total Fees Charged: ${0:0.00}", totalFees);
+            Console.WriteLine("Total Discounts Given: ${0:0.00}", totalDiscounts);
+            Console.WriteLine("Final Total Revenue Collected: ${0:0.00}", finalTotal);
+            Console.WriteLine("Percentage of Discounts Over Total Fees: {0:0.00}%", discountPercentage);
+            Console.WriteLine("=============================================");
+        }
 
         public override string ToString()
         {
