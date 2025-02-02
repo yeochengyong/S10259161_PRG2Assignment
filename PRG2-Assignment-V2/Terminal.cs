@@ -554,7 +554,6 @@ namespace PRG2_Assignment_V2
         // MODIFY FLIGHT
         private void ModifyExistingFlight(Airline airline)
         {
-            // prompt flight number
             Flight selectedFlight = null;
             while (selectedFlight == null)
             {
@@ -571,7 +570,6 @@ namespace PRG2_Assignment_V2
                 }
             }
 
-            // display modification options
             Console.WriteLine("\nWhat would you like to modify?");
             Console.WriteLine("[1] Origin");
             Console.WriteLine("[2] Destination");
@@ -621,7 +619,15 @@ namespace PRG2_Assignment_V2
                     string newCode = Console.ReadLine().Trim().ToUpper();
                     if (newCode == "CFFT" || newCode == "DDJB" || newCode == "LWTT" || newCode == "NONE")
                     {
-                        // Handle special request code changes
+                        selectedFlight = newCode switch
+                        {
+                            "CFFT" => new CFFTFlight(selectedFlight.FlightNumber, selectedFlight.Origin, selectedFlight.Destination, selectedFlight.ExpectedTime, selectedFlight.Status),
+                            "DDJB" => new DDJBFlight(selectedFlight.FlightNumber, selectedFlight.Origin, selectedFlight.Destination, selectedFlight.ExpectedTime, selectedFlight.Status),
+                            "LWTT" => new LWTTFlight(selectedFlight.FlightNumber, selectedFlight.Origin, selectedFlight.Destination, selectedFlight.ExpectedTime, selectedFlight.Status),
+                            _ => new NORMFlight(selectedFlight.FlightNumber, selectedFlight.Origin, selectedFlight.Destination, selectedFlight.ExpectedTime, selectedFlight.Status)
+                        };
+                        airline.Flights[selectedFlight.FlightNumber] = selectedFlight;
+                        Console.WriteLine("\nSpecial Request Code updated successfully!");
                     }
                     else
                     {
@@ -630,7 +636,36 @@ namespace PRG2_Assignment_V2
                     break;
                 case "6":
                     Console.Write("\nEnter new Boarding Gate: ");
-                    // Update the flight's boarding gate assignment
+                    string gateName = Console.ReadLine().Trim().ToUpper();
+                    if (BoardingGates.ContainsKey(gateName))
+                    {
+                        BoardingGate newGate = BoardingGates[gateName];
+
+                        if (newGate.AssignedFlight == null)
+                        {
+                            // Unassign the flight from any previous gate
+                            foreach (var gate in BoardingGates.Values)
+                            {
+                                if (gate.AssignedFlight == selectedFlight)
+                                {
+                                    gate.AssignedFlight = null;
+                                    break;
+                                }
+                            }
+
+                            // Assign to the new gate
+                            newGate.AssignedFlight = selectedFlight;
+                            Console.WriteLine($"\nFlight assigned to new Boarding Gate {gateName} successfully!");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Error: This Boarding Gate is already assigned to another flight. No changes made.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error: Invalid Boarding Gate. No changes made.");
+                    }
                     break;
                 default:
                     Console.WriteLine("Error: Invalid option. No changes made.");
@@ -673,9 +708,9 @@ namespace PRG2_Assignment_V2
         }
         public void DisplayScheduledFlights()
         {
-            Console.WriteLine("\n====================================================================================================================================================");
+            Console.WriteLine("\n===================================================================================================================");
             Console.WriteLine($"Flight Schedule for {TerminalName}");
-            Console.WriteLine("====================================================================================================================================================");
+            Console.WriteLine("=====================================================================================================================");
 
             // Collect all flights from all airlines
             List<Flight> allFlights = new List<Flight>();
@@ -690,7 +725,7 @@ namespace PRG2_Assignment_V2
             // Display table header (Fixed alignment)
             Console.WriteLine("{0,-12} {1,-22} {2,-25} {3,-25} {4,-30} {5,-12} {6,-15}",
                               "Flight No.", "Airline Name", "Origin", "Destination", "Expected Departure/Arrival", "Status", "Boarding Gate");
-            Console.WriteLine("====================================================================================================================================================");
+            Console.WriteLine("======================================================================================================================");
 
             // Display flight details
             foreach (var flight in allFlights)
@@ -714,7 +749,7 @@ namespace PRG2_Assignment_V2
                 string formattedOrigin = flight.Origin.Length < 23 ? flight.Origin.PadRight(23) : flight.Origin;
                 string formattedDestination = flight.Destination.Length < 23 ? flight.Destination.PadRight(23) : flight.Destination;
 
-                // Format and display flight details (Fixed spacing)
+                // Format and display flight details
                 Console.WriteLine("{0,-12} {1,-22} {2,-25} {3,-25} {4,-30} {5,-12} {6,-15}",
                                   flight.FlightNumber, airlineName, formattedOrigin, formattedDestination,
                                   flight.ExpectedTime.ToString("d/M/yyyy hh:mm:ss tt"), flight.Status, boardingGateName);
@@ -804,6 +839,8 @@ namespace PRG2_Assignment_V2
             double assignedPercentage = (flightsAssigned > 0) ? ((double)flightsAssigned / Flights.Count) * 100 : 0;
             Console.WriteLine($"Flights Assigned Automatically: {flightsAssigned}");
         }
+
+        // advanced feature (b)
         public void DisplayTotalFeePerAirline()
         {
             Console.WriteLine("=============================================");
@@ -811,7 +848,10 @@ namespace PRG2_Assignment_V2
             Console.WriteLine("=============================================");
 
             // Check if all flights have boarding gates assigned
-            int unassignedFlights = Flights.Values.Count(f => !BoardingGates.Values.Any(g => g.AssignedFlight == f));
+            int unassignedFlights = Airlines.Values
+                .SelectMany(a => a.Flights.Values)
+                .Where(f => Flights.ContainsKey(f.FlightNumber))  // Only consider existing flights
+                .Count(f => !BoardingGates.Values.Any(g => g.AssignedFlight == f));
 
             if (unassignedFlights > 0)
             {
